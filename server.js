@@ -2,43 +2,41 @@ const express = require('express');
 const app = express();
 const dotenv = require('dotenv');
 const cors = require('cors');
+const { shopifyApi, LATEST_API_VERSION } = require('@shopify/shopify-api');
 
-// Middleware
 dotenv.config();
 app.use(cors());
 app.use(express.json());
 
-
-
-app.get("/api/auth/callback", async (req, res) => {
-  try {
-    const session = await shopify.auth.validateAuthCallback(req, res, req.query);
-
-    const client = new shopify.api.clients.Rest({ session });
-
-    // ✅ Pre-order script tag insert
-    await client.post({
-      path: 'script_tags',
-      data: {
-        script_tag: {
-          event: 'onload',
-          src: 'https://shopify-whatsapp-app-m6cy.onrender.com/preorder-widget.js',
-        },
-      },
-      type: 'application/json',
-    });
-
-    // ✅ Redirect back to app/home
-    res.redirect(`/?shop=${session.shop}`);
-  } catch (error) {
-    console.error("ScriptTag Error:", error);
-    res.status(500).send(error.message);
-  }
+// Shopify API setup
+const shopify = shopifyApi({
+  apiKey: process.env.SHOPIFY_API_KEY,
+  apiSecretKey: process.env.SHOPIFY_API_SECRET,
+  scopes: process.env.SCOPES.split(","),
+  hostName: process.env.HOST.replace(/https?:\/\//, ""),
+  apiVersion: LATEST_API_VERSION,
+  isEmbeddedApp: true,
 });
 
+// ✅ Root route fix
+app.get("/", (req, res) => {
+  res.send("Preorder App Running 🚀");
+});
+
+// Step 1: Auth start
+app.get("/auth", shopify.auth.begin());
+
+// Step 2: Auth callback
+app.get("/auth/callback", shopify.auth.callback(), async (req, res) => {
+  const session = await shopify.session.getCurrentId({ isOnline: true });
+  console.log("✅ Authenticated Session:", session);
+  res.redirect(`/?shop=${req.query.shop}`);
+});
+
+// Example API route
+app.get("/api/test", async (req, res) => {
+  res.json({ success: true, message: "API working" });
+});
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
