@@ -1,14 +1,19 @@
+require('@shopify/shopify-api/adapters/node');
+
+
 const express = require('express');
 const app = express();
 const dotenv = require('dotenv');
 const cors = require('cors');
-
-// Shopify API with adapter fix
-const { shopifyApi, LATEST_API_VERSION, adapters } = require('@shopify/shopify-api');
+// Shopify API imports
+const { shopifyApi, LATEST_API_VERSION } = require('@shopify/shopify-api');
 
 dotenv.config();
 app.use(cors());
 app.use(express.json());
+
+
+
 
 // Shopify API setup with Node.js adapter
 const shopify = shopifyApi({
