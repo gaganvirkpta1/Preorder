@@ -49,7 +49,34 @@ app.get('/check', async (req, res) => {
 });
 
 // PORT handling for Render (must use Render's provided PORT)
+
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+}
+
+      // Default home route
+app.get('/', (req, res) => {
+  res.send('✅ Shopify Preorder App Running Successfully!');
+});
+
+// Health check route (useful for Render uptime checks)
+app.get('/healthz', (req, res) => {
+  res.status(200).send('ok');
+});
+
+// Test route
+app.get('/check', async (req, res) => {
+  try {
+    res.send({ success: true, msg: 'Check route working' });
+  } catch (error) {
+    res.status(500).send({ success: false, error: error.message });
+  }
+});
+
+// PORT handling for Render (must use Render's provided PORT)
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
+     
+          );
